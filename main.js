@@ -30,7 +30,11 @@ async function updateActiveBoard() {
 await updateActiveBoard();
 
 let token = await getToken();
-// if (!token) login();
+// if (!token)
+
+if (!token && window.confirm("Authenticate?")) {
+  login();
+}
 
 async function submit() {
   const blob = await new Promise((r) =>
