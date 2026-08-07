@@ -1,0 +1,76 @@
+@font-face {
+  font-family: Optician;
+  src: url("./Optician-Sans.woff2");
+}
+
+:root {
+  font-family: Optician;
+}
+html,
+body {
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+body {
+  background: #000;
+  margin: 0;
+}
+.wrapper {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+
+  .actions,
+  .palette {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+}
+canvas {
+  background: #fff;
+}
+
+#clear {
+  --btn-color: rgb(139, 66, 119);
+}
+#submit {
+  --btn-color: rgb(62, 146, 109);
+}
+
+#undo {
+  --btn-color: rgb(169, 120, 52);
+}
+
+button {
+  appearance: none;
+  background: var(--btn-color);
+  color: white;
+  border-width: 15px;
+  cursor: pointer;
+  padding: 20px 10px;
+  font-size: 30px;
+  letter-spacing: 10px;
+
+  font-family: inherit;
+
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--btn-color), white 50%)
+    color-mix(in srgb, var(--btn-color), black 25%)
+    color-mix(in srgb, var(--btn-color), black 50%)
+    color-mix(in srgb, var(--btn-color), white 25%);
+
+  &:active {
+    border-color: color-mix(in srgb, var(--btn-color), black 50%)
+      color-mix(in srgb, var(--btn-color), white 25%)
+      color-mix(in srgb, var(--btn-color), white 50%)
+      color-mix(in srgb, var(--btn-color), black 25%);
+  }
+}
