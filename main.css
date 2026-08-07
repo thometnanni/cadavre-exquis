@@ -46,6 +46,11 @@ canvas {
   --btn-color: rgb(169, 120, 52);
 }
 
+button:disabled {
+  --btn-color: rgb(35, 35, 35) !important;
+  cursor: not-allowed;
+}
+
 button {
   appearance: none;
   background: var(--btn-color);
@@ -67,7 +72,7 @@ button {
     color-mix(in srgb, var(--btn-color), black 50%)
     color-mix(in srgb, var(--btn-color), white 25%);
 
-  &:active {
+  &:active&:not(:disabled) {
     border-color: color-mix(in srgb, var(--btn-color), black 50%)
       color-mix(in srgb, var(--btn-color), white 25%)
       color-mix(in srgb, var(--btn-color), white 50%)

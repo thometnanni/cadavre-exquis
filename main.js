@@ -13,7 +13,13 @@ document.querySelector("#clear").addEventListener("click", (e) => clear(index));
 document.querySelector("#undo").addEventListener("click", undo);
 document.querySelector("#submit").addEventListener("click", submit);
 
-async function updateActiveBoard() {
+let token = await getToken();
+
+if (!token && window.confirm("Authenticate?")) {
+  login();
+}
+
+async function getActiveBoard() {
   const mainBoard = await fetch(
     `https://api.are.na/v3/channels/${CHANNEL}/contents?${Date.now()}`,
   ).then((r) => r.json());
@@ -22,29 +28,21 @@ async function updateActiveBoard() {
     item.counts.blocks < min.counts.blocks ? item : min,
   ).slug;
 
-  console.log(slug);
   index = +slug.match(/\d$/);
   clear(index);
 }
 
-await updateActiveBoard();
-
-let token = await getToken();
-// if (!token)
-
-if (!token && window.confirm("Authenticate?")) {
-  login();
-}
+await getActiveBoard();
 
 async function submit() {
+  document.querySelector("#submit").disabled = true;
+  console.log(document.querySelector("#submit").disabled);
   const blob = await new Promise((r) =>
     document.querySelector("canvas").toBlob(r, "image/png"),
   );
 
   token ??= await getToken();
   if (!token) return login();
-
-  console.log(token);
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -90,7 +88,7 @@ async function submit() {
   const data = await res.json();
   if (res.ok) {
     console.log(`uploaded to board slug`);
-    await updateActiveBoard();
+    await getActiveBoard();
   } else {
     alert(`error ${res.status}: ${JSON.stringify(data)}`);
   }

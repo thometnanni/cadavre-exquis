@@ -55,7 +55,9 @@ function line(a, b) {
 
 function drawEnd(e) {
   active.delete(e.pointerId);
-  ctx.save();
+  document.querySelector("#submit").disabled = false;
+  document.querySelector("#clear").disabled = false;
+  document.querySelector("#undo").disabled = false;
 }
 
 function resize() {
@@ -105,6 +107,9 @@ export function clear(i) {
   history.length = 0;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawConnections();
+  document.querySelector("#submit").disabled = true;
+  document.querySelector("#clear").disabled = true;
+  document.querySelector("#undo").disabled = true;
 }
 
 export function undo() {
@@ -112,4 +117,9 @@ export function undo() {
   const img = history.pop();
   if (!img) return;
   ctx.putImageData(img, 0, 0);
+  if (history.length === 0) {
+    document.querySelector("#submit").disabled = true;
+    document.querySelector("#clear").disabled = true;
+    document.querySelector("#undo").disabled = true;
+  }
 }
