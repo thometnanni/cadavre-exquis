@@ -4,7 +4,8 @@ import { getToken, login, logout } from "./auth.js";
 
 const { CLIENT_ID, CHANNEL } = config;
 
-const index = 0;
+let index = 0;
+let slug = null;
 
 setup();
 
@@ -12,21 +13,24 @@ document.querySelector("#clear").addEventListener("click", (e) => clear(index));
 document.querySelector("#undo").addEventListener("click", undo);
 document.querySelector("#submit").addEventListener("click", submit);
 
-const mainBoard = await fetch(
-  `https://api.are.na/v3/channels/${CHANNEL}/contents`,
-).then((r) => r.json());
+async function updateActiveBoard() {
+  const mainBoard = await fetch(
+    `https://api.are.na/v3/channels/${CHANNEL}/contents?${Date.now()}`,
+  ).then((r) => r.json());
 
-const { slug } = mainBoard.data.reduce((min, item) =>
-  item.counts.blocks < min.counts.blocks ? item : min,
-);
+  slug = mainBoard.data.reduce((min, item) =>
+    item.counts.blocks < min.counts.blocks ? item : min,
+  ).slug;
 
-console.log(slug);
-console.log(+slug.match(/\d$/));
+  console.log(slug);
+  index = +slug.match(/\d$/);
+  clear(index);
+}
 
-clear(+slug.match(/\d$/));
+await updateActiveBoard();
 
 let token = await getToken();
-if (!token) login();
+// if (!token) login();
 
 async function submit() {
   const blob = await new Promise((r) =>
@@ -52,7 +56,6 @@ async function submit() {
   });
 
   if (presignRes.status === 401) {
-    // revoked in are.na settings
     logout();
     token = null;
     return login();
@@ -77,13 +80,13 @@ async function submit() {
     headers,
     body: JSON.stringify({
       value: imageUrl,
-      channels: [{ id: slugs[selectedBoard] }],
+      channels: [{ id: slug }],
     }),
   });
   const data = await res.json();
   if (res.ok) {
-    alert(`uploaded to board ${selectedBoard}`);
-    await doAuto();
+    console.log(`uploaded to board slug`);
+    await updateActiveBoard();
   } else {
     alert(`error ${res.status}: ${JSON.stringify(data)}`);
   }
