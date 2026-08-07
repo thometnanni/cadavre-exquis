@@ -1,6 +1,5 @@
-// auth.js
-const CLIENT_ID = "Pwp7jVE76wgjkQwZOH0vbdwmAjEI5kXC5Ffwz0Br2V8";
-const REDIRECT_URI = "https://thometnanni.github.io/cadavre-exquis/";
+import config from "./config.json" with { type: "json" };
+const { REDIRECT_URI, CLIENT_ID } = config;
 
 const b64url = (bytes) =>
   btoa(String.fromCharCode(...new Uint8Array(bytes)))
@@ -19,7 +18,8 @@ export async function login() {
   sessionStorage.setItem("oauth_state", state);
 
   const url = new URL("https://www.are.na/oauth/authorize");
-  for (const [k, v] of Object.entries({
+
+  const params = Object.entries({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "code",
@@ -27,9 +27,11 @@ export async function login() {
     state,
     code_challenge: challenge,
     code_challenge_method: "S256",
-  }))
-    url.searchParams.set(k, v);
+  });
 
+  for (const [key, value] of params) {
+    url.searchParams.set(key, value);
+  }
   location.assign(url);
 }
 
