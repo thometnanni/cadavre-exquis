@@ -53,7 +53,7 @@ export async function getToken() {
 
   if (!verifier || params.get("state") !== expected) return null;
 
-  const res = await fetch("https://dev.are.na/oauth/token", {
+  const res = await fetch("https://api.are.na/v3/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
