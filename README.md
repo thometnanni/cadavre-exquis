@@ -1,6 +1,5 @@
-# 2026-08-14 Cadavre Exquis
+# Cadavre Exquis
 
-{{TOC}}
 
 ## Hardware
 
