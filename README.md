@@ -1,6 +1,5 @@
 # Cadavre Exquis
 
-
 ## Hardware
 
 - raspberry pi 5
@@ -62,15 +61,33 @@ sudo apt update
 sudo apt install -y python3-venv python3-dev libusb-1.0-0-dev libjpeg-dev zlib1g-dev
 ```
 
+### install node
+
+```
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+\. "$HOME/.nvm/nvm.sh"
+nvm install 24
+node -v
+```
+
+### clone repository
+
+```
+git clone https://github.com/thometnanni/cadavre-exquis.git
+```
+
 ### setup esc-pos python script
 
 ```
-cd ~/esc-pos
+cd ~/cadavre-exquis/image-printer
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install python-escpos Pillow pyserial pyusb
-pip freeze > requirements.txt
+pip install -r requirements.txt
+
+# alternatively install manually
+# pip install python-escpos Pillow pyserial pyusb
+# pip freeze > requirements.txt
 ```
 
 ### user groups
@@ -99,10 +116,10 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 sudo reboot
 ```
 
-### test
+### test printing
 
 ```
-cd esc-pose
+cd ~/cadavre-exquis/image-printer
 source .venv/bin/activate
 
 python3 print.py detect
@@ -112,13 +129,23 @@ python3 print.py print test.jpg
 python3 print.py cut
 ```
 
-### install node
+### setup api / server
 
 ```
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
-\. "$HOME/.nvm/nvm.sh"
-nvm install 24
-node -v
+cd ~/cadavre-exquis/api/
+npm i
+```
+
+launch once
+
+```
+node index.js
+```
+
+for development (autorestarts on changes)
+
+```
+npm run dev
 ```
 
 ### autostart the server
