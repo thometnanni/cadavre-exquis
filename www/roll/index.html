@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>esc-pose</title>
+    <base href="/roll/" />
+  </head>
+  <body>
+    <div id="global-controls">
+      <img
+        id="cut-all-btn"
+        class="scissor-btn"
+        src="media/scissors.png"
+        alt="cut all"
+        title="cut all"
+      />
+      <button id="auto-btn">auto: off</button>
+    </div>
+    <div class="rig">
+      <div id="p5" class="printer" data-index="0">
+        <img src="media/5.png" alt="printer 5" />
+        <!-- <span class="num">5</span> -->
+        <img
+          class="scissor-btn"
+          src="media/scissors.png"
+          alt="cut"
+          draggable="false"
+          title="cut printer 5"
+        />
+      </div>
+      <div id="p4" class="printer" data-index="1">
+        <img src="media/4.png" alt="printer 4" />
+        <!-- <span class="num">4</span> -->
+        <img
+          class="scissor-btn"
+          src="media/scissors.png"
+          alt="cut"
+          draggable="false"
+          title="cut printer 4"
+        />
+      </div>
+      <div id="p3" class="printer" data-index="2">
+        <img src="media/3.png" alt="printer 3" />
+        <!-- <span class="num">3</span> -->
+        <img
+          class="scissor-btn"
+          src="media/scissors.png"
+          alt="cut"
+          draggable="false"
+          title="cut printer 3"
+        />
+      </div>
+      <div id="p2" class="printer" data-index="3">
+        <img src="media/2.png" alt="printer 2" />
+        <!-- <span class="num">2</span> -->
+        <img
+          class="scissor-btn"
+          src="media/scissors.png"
+          alt="cut"
+          draggable="false"
+          title="cut printer 2"
+        />
+      </div>
+      <div id="p1" class="printer" data-index="4">
+        <img src="media/1.png" alt="printer 1" />
+        <!-- <span class="num">1</span> -->
+        <img
+          class="scissor-btn"
+          src="media/scissors.png"
+          alt="cut"
+          draggable="false"
+          title="cut printer 1"
+        />
+      </div>
+    </div>
+  </body>
+  <script>
+    const API_BASE = "/api";
+
+    const uploadUrl = (index) => `${API_BASE}/upload/roll${"/" + index ?? ""}`;
+    const cutUrl = (index) => `${API_BASE}/cut${"/" + index ?? ""}`;
+
+    const printers = document.querySelectorAll(".printer");
+
+    function flash(el, ok) {
+      el.classList.add(ok ? "upload-done" : "upload-error");
+      setTimeout(() => {
+        el.classList.remove("upload-done", "upload-error");
+      }, 2000);
+    }
+
+    async function putBlob(url, blob) {
+      const res = await fetch(url, { method: "PUT", body: blob });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    }
+
+    // --- drag & drop an image onto a printer
+    printers.forEach((el) => {
+      const index = el.dataset.index;
+
+      el.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        el.classList.add("drag-over");
+      });
+
+      el.addEventListener("dragleave", () => {
+        el.classList.remove("drag-over");
+      });
+
+      el.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        el.classList.remove("drag-over");
+
+        const file = e.dataTransfer.files[0];
+        if (!file || !file.type.startsWith("image/")) return;
+
+        el.classList.add("uploading");
+        el.classList.remove("upload-error", "upload-done");
+        try {
+          await putBlob(uploadUrl(index), file);
+          flash(el, true);
+        } catch (err) {
+          console.error("upload failed:", err);
+          flash(el, false);
+        } finally {
+          el.classList.remove("uploading");
+        }
+      });
+
+      // --- per-printer scissors
+      const scissors = el.querySelector(".scissor-btn");
+      scissors.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        el.classList.add("cutting");
+        try {
+          const res = await fetch(cutUrl(index));
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          flash(el, true);
+        } catch (err) {
+          console.error("cut failed:", err);
+          flash(el, false);
+        } finally {
+          el.classList.remove("cutting");
+        }
+      });
+    });
+
+    // --- global scissor
+    document
+      .getElementById("cut-all-btn")
+      .addEventListener("click", async () => {
+        try {
+          const res = await fetch(cutUrl());
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          printers.forEach((el) => flash(el, true));
+        } catch (err) {
+          console.error("cut all failed:", err);
+          printers.forEach((el) => flash(el, false));
+        }
+      });
+
+    // --- auto mode: every 10s
+    function makeTimeImageBlob() {
+      return new Promise((resolve) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 384;
+        canvas.height = 140;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 52px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        const ss = String(now.getSeconds()).padStart(2, "0");
+        ctx.fillText(`${hh}:${mm}:${ss}`, canvas.width / 2, canvas.height / 2);
+        canvas.toBlob((blob) => resolve(blob), "image/png");
+      });
+    }
+
+    let autoTimer = null;
+    let autoOn = false;
+
+    async function autoTick() {
+      try {
+        const blob = await makeTimeImageBlob();
+        await putBlob(uploadUrl(), blob);
+        printers.forEach((el) => flash(el, true));
+      } catch (err) {
+        console.error("auto upload failed:", err);
+        printers.forEach((el) => flash(el, false));
+      }
+    }
+
+    const autoBtn = document.getElementById("auto-btn");
+    autoBtn.addEventListener("click", () => {
+      autoOn = !autoOn;
+      autoBtn.classList.toggle("active", autoOn);
+      autoBtn.textContent = autoOn ? "auto: on" : "auto: off";
+      if (autoOn) {
+        autoTick();
+        autoTimer = setInterval(autoTick, 30000);
+      } else {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+    });
+  </script>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      font-family: sans-serif;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .rig {
+      position: relative;
+      width: min(1000px, 100%);
+      aspect-ratio: 1000 / 700;
+    }
+    .printer {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .printer > img:not(.scissor-btn) {
+      display: block;
+      width: 100%;
+      height: auto;
+      transition: filter 0.15s ease;
+      filter: grayscale(1) brightness(1.2) contrast(1.2);
+    }
+    .printer.drag-over img:not(.scissor-btn) {
+      filter: none;
+    }
+    .printer.uploading img:not(.scissor-btn),
+    .printer.cutting img:not(.scissor-btn) {
+      filter: brightness(0.7) saturate(0.3);
+    }
+    .printer.upload-done img:not(.scissor-btn) {
+      filter: sepia(1) saturate(4) hue-rotate(160deg);
+    }
+    .printer.upload-error img:not(.scissor-btn) {
+      filter: sepia(1) saturate(4) hue-rotate(-50deg);
+    }
+    .printer .num {
+      font-size: 80px;
+      font-weight: 400;
+      line-height: 1;
+      margin-top: 1rem;
+      margin-left: -2em;
+    }
+
+    .scissor-btn {
+      width: 100px;
+      height: auto;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+      outline: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .scissor-btn:hover {
+      transform: scale(1.15) rotate(-8deg);
+    }
+    .printer .scissor-btn {
+      width: 25%;
+      margin-top: 6px;
+      margin-left: -6%;
+      filter: grayscale(1) brightness(1.2) contrast(1.2);
+    }
+
+    #global-controls {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+    #global-controls .scissor-btn {
+      position: static;
+      width: 48px;
+    }
+    #auto-btn {
+      font-family: monospace;
+      font-size: 14px;
+      padding: 4px 8px;
+      cursor: pointer;
+      border: 1px solid #000;
+      background: #fff;
+    }
+    #auto-btn.active {
+      background: #000;
+      color: #fff;
+    }
+
+    #p1 {
+      top: 6%;
+      left: -2%;
+      width: 25.6%;
+      z-index: 1;
+    }
+    #p2 {
+      top: 12%;
+      left: 10.5%;
+      width: 26.4%;
+      z-index: 2;
+    }
+    #p3 {
+      top: 17.57%;
+      left: 23.5%;
+      width: 31%;
+      z-index: 3;
+    }
+    #p4 {
+      top: 22.29%;
+      left: 37%;
+      width: 36.2%;
+      z-index: 4;
+    }
+    #p5 {
+      top: 27.86%;
+      left: 51.3%;
+      width: 45.1%;
+      z-index: 5;
+    }
+
+    @media (max-width: 480px) {
+      #global-controls {
+        top: 8px;
+        left: 8px;
+        gap: 6px;
+      }
+      #global-controls .scissor-btn {
+        width: 32px;
+      }
+      #auto-btn {
+        font-size: 12px;
+        padding: 3px 6px;
+      }
+    }
+  </style>
+</html>

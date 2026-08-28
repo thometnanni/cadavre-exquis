@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>admin</title>
+    <base href="/cadavre-ex/" />
+    <link href="main.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="controls">
+      <button id="cut">cut</button>
+      <button id="toggle">toggle mode</button>
+    </div>
+    <div class="drawings"></div>
+  </body>
+</html>
+<script type="module">
+  async function cut() {
+    await fetch("/api/cut");
+  }
+
+  async function toggle() {
+    console.log("hi");
+    const { mode } = await fetch("/api/mode").then((d) => d.json());
+    if (mode === 1) {
+      await fetch("/api/mode/roll");
+    } else {
+      await fetch("/api/mode/cadavre");
+    }
+  }
+
+  for (let cat = 0; cat < 5; cat++) {
+    const drawings = await fetch(`/api/cadavres/${cat}`).then((d) => d.json());
+    const el = document.createElement("section");
+
+    for (let drawing of drawings) {
+      const img = document.createElement("img");
+      img.setAttribute("src", `/drawings/${cat}/${drawing}`);
+      el.appendChild(img);
+
+      img.addEventListener("click", async () => {
+        if (confirm("delete drawing?")) {
+          await fetch(`/api/cadavres/${cat}/${drawing}`, { method: "DELETE" });
+          location.reload();
+        } else if (confirm("print drawing?")) {
+          await fetch(`/api/cadavres/${cat}/${drawing}`, { method: "GET" });
+        }
+      });
+    }
+
+    document.querySelector(".drawings").appendChild(el);
+  }
+
+  document.querySelector("#cut").addEventListener("click", cut);
+  document.querySelector("#toggle").addEventListener("click", toggle);
+</script>
+<style>
+  .controls {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  button {
+    writing-mode: initial;
+    padding: 10px 20px;
+  }
+  #cut {
+    --btn-color: rgb(13, 55, 58);
+  }
+  #toggle {
+    --btn-color: rgb(95, 77, 26);
+  }
+
+  .drawings {
+    display: grid;
+    width: 100vw;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+
+    section {
+      justify-content: flex-end;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 1px;
+    }
+  }
+
+  img {
+    background: white;
+    display: block;
+    width: 100%;
+  }
+</style>

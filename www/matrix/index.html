@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matrix</title>
+  </head>
+  <body></body>
+</html>
+<script type="module">
+  let state = await fetch("/api/pixels").then((d) => d.json());
+  console.log(state);
+  let isDrawing = false;
+  let drawValue = true;
+
+  for (let i = 0; i < 8 * 8 * 4; i++) {
+    const el = document.createElement("input");
+    el.setAttribute("type", "checkbox");
+    // console.log(state[(Math.floor(i / 8), i % 8)];)
+    el.checked = state[Math.floor(i / 32)][i % 32];
+    document.querySelector("body").appendChild(el);
+
+    el.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      isDrawing = true;
+      drawValue = !el.checked;
+      el.checked = drawValue;
+      pushDrawing();
+    });
+
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+    });
+
+    el.addEventListener("mouseenter", () => {
+      if (isDrawing) {
+        pushDrawing();
+        el.checked = drawValue;
+      }
+    });
+  }
+
+  document.addEventListener("mouseup", () => (isDrawing = false));
+  document.addEventListener("mouseleave", () => (isDrawing = false));
+
+  document.addEventListener("keydown", () =>
+    console.log(JSON.stringify(state)),
+  );
+
+  function pushDrawing() {
+    const newState = chunkArray(
+      [...document.querySelectorAll("input")].map((d) => (d.checked ? 1 : 0)),
+      8,
+    );
+
+    const json = JSON.stringify(newState);
+
+    if (json === JSON.stringify(state)) return;
+
+    state = JSON.stringify(json);
+
+    fetch("/api/pixels", {
+      method: "POST",
+      body: json,
+    });
+  }
+
+  function chunkArray(arr, numGroups) {
+    const groupSize = Math.ceil(arr.length / numGroups);
+    const result = [];
+    for (let i = 0; i < arr.length; i += groupSize) {
+      result.push(arr.slice(i, i + groupSize));
+    }
+    return result;
+  }
+</script>
+<style>
+  body {
+    background: black;
+    display: grid;
+    grid-template-columns: repeat(32, 20px);
+    grid-template-rows: repeat(8, 20px);
+    justify-content: center;
+    align-content: center;
+    height: 100vh;
+  }
+  input {
+    /* appearance: none; */
+    display: block;
+    width: 20px;
+    height: 20px;
+    padding: 5px;
+  }
+</style>

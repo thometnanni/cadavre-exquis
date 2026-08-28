@@ -25,10 +25,20 @@ body {
 
   .actions,
   .palette {
+    filter: invert(1);
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
+    background-size: cover;
+  }
+
+  .actions {
+    background-position-x: left;
+  }
+
+  .palette {
+    background-position-x: right;
   }
 }
 canvas {
@@ -52,6 +62,7 @@ button:disabled {
 }
 
 button {
+  filter: invert(1);
   appearance: none;
   background: var(--btn-color);
   color: white;
@@ -67,15 +78,11 @@ button {
   text-orientation: upright;
 
   border-style: solid;
-  border-color: color-mix(in srgb, var(--btn-color), white 50%)
-    color-mix(in srgb, var(--btn-color), black 25%)
-    color-mix(in srgb, var(--btn-color), black 50%)
-    color-mix(in srgb, var(--btn-color), white 25%);
+  border-color: color-mix(in srgb, var(--btn-color), white 50%) color-mix(in srgb, var(--btn-color), black 25%)
+    color-mix(in srgb, var(--btn-color), black 50%) color-mix(in srgb, var(--btn-color), white 25%);
 
   &:active&:not(:disabled) {
-    border-color: color-mix(in srgb, var(--btn-color), black 50%)
-      color-mix(in srgb, var(--btn-color), white 25%)
-      color-mix(in srgb, var(--btn-color), white 50%)
-      color-mix(in srgb, var(--btn-color), black 25%);
+    border-color: color-mix(in srgb, var(--btn-color), black 50%) color-mix(in srgb, var(--btn-color), white 25%)
+      color-mix(in srgb, var(--btn-color), white 50%) color-mix(in srgb, var(--btn-color), black 25%);
   }
 }

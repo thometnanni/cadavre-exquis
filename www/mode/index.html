@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mode</title>
+  </head>
+  <body>
+    <form>
+      <label><input type="radio" name="mode" value="cadavre" checked />CADAVRE</label>
+      <label><input type="radio" name="mode" value="roll" />ROLL</label>
+    </form>
+  </body>
+</html>
+<script type="module">
+  const modes = {
+    1: "cadavre",
+    2: "roll",
+  };
+  let { mode } = await fetch("/api/mode").then((d) => d.json());
+  console.log(modes[mode]);
+  document.querySelector(`[value="${modes[mode]}"]`).checked = true;
+
+  document.querySelector("form").addEventListener("change", (e) => {
+    fetch(`/api/mode/${e.target.value}`).then((d) => d.json());
+  });
+</script>
+<style>
+  body {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+
+  form {
+    transform: scale(10);
+  }
+
+  label {
+    display: block;
+    font-weight: bold;
+  }
+  /* label,
+  input {
+    font-size: 250px;
+  } */
+</style>
