@@ -77,8 +77,8 @@
     async function toggle() {
       const { mode } = await fetch("/api/mode").then((d) => d.json());
       console.log(mode);
-      if (mode === 2) {
-        await fetch("/api/mode/cadavre");
+      if (mode === 1) {
+        await fetch("/api/mode/roll");
       } else {
         await fetch("/api/mode/roll");
       }
@@ -225,7 +225,7 @@
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#000";
-        ctx.font = "normal 20px sans";
+        ctx.font = "normal 20px arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const now = new Date();
@@ -244,7 +244,7 @@
     ) {
       return new Promise((resolve) => {
         const width = 384;
-        const font = `normal ${fontSize}px sans`;
+        const font = `normal ${fontSize}px arial`;
 
         // measure on a scratch canvas first, so we can size the real one to fit
         const measure = document.createElement("canvas").getContext("2d");
@@ -368,7 +368,7 @@
       min-height: 100vh;
 
       background: black;
-      font-family: sans-serif;
+      font-family: arial;
       box-sizing: border-box;
     }
     .drawings {
