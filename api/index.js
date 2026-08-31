@@ -245,6 +245,7 @@ async function printImage() {
     const args = printer != null ? [SCRIPT, "print", image, "-p", printer] : [SCRIPT, "print", image];
     const proc = spawn(PYTHON, args);
     proc.on("close", () => {
+      if (image.startsWith(TMP_DIR)) rm(image).catch(() => {});
       printing = false;
       printImage();
       resolve();
